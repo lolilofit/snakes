@@ -4,24 +4,23 @@ import creator.globalState
 import me.ippolitov.fit.snakes.SnakesProto
 import model.CurrentGame
 import model.CurrentGames
-import model.GamePlayer
-import presentation.ImmediateQueue
 import presentation.SelfInfo
 import presentation.master.Task
 import presentation.move.moveimpl.JoinSender
-import presentation.notmaster.MessagesReaction.*
+import presentation.notmaster.MessagesReaction.AnnouncementReaction
+import presentation.notmaster.MessagesReaction.JoinReaction
+import presentation.notmaster.MessagesReaction.StateMsgReaction
+import presentation.notmaster.MessagesReaction.SteerMessageReaction
 import view.View
 import java.net.DatagramPacket
-import java.util.*
 import java.util.concurrent.atomic.AtomicLong
-import kotlin.collections.HashMap
 
-object GetRegularPayerMessage : Task {
+object GetMulticastMessage : Task {
     private lateinit var view : View
     private val currentGames : CurrentGames = CurrentGames(HashMap())
     fun getCurrentGames() = currentGames
-    private val acked : MutableMap<Pair<String, Int>, AtomicLong> = HashMap()
 
+    private val acked : MutableMap<Pair<String, Int>, AtomicLong> = HashMap()
     override fun cleanup() {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
@@ -31,8 +30,7 @@ object GetRegularPayerMessage : Task {
 
         while(true) {
             val packet = DatagramPacket(buf, buf.size)
-
-            SelfInfo.regularSocket.receive(packet)
+            SelfInfo.multicastSocket.receive(packet)
 
             val resized = ByteArray(packet.length)
             packet.data.copyInto(resized, 0 ,0 , packet.length)
@@ -48,7 +46,7 @@ object GetRegularPayerMessage : Task {
                                 p as CurrentGame,
                                 "play",
                                 0.toLong()
-                                ))
+                        ))
                     }
                 }
             }
@@ -61,12 +59,7 @@ object GetRegularPayerMessage : Task {
             if(protoElement.hasSteer()) {
                 SteerMessageReaction.execute(protoElement, packet, currentGames, view, acked)
             }
-            if(protoElement.hasAck()) {
-                AckReaction.execute(protoElement, packet, currentGames, view, acked)
-            }
-            if(protoElement.hasPing()) {
-                //PingReaction
-            }
+         //   System.out.println("got message from other player")
         }
     }
 

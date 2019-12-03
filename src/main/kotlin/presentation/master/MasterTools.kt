@@ -3,6 +3,7 @@ package presentation.master
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import presentation.notmaster.GetMulticastMessage
 import presentation.notmaster.GetRegularPayerMessage
 import view.View
 import java.util.*
@@ -18,6 +19,8 @@ object MasterTools {
         masterTasks["TimeoutQueue"]?.setView(view)
         regularTasks["GetRegularPlayerMessage"] = GetRegularPayerMessage
         regularTasks["GetRegularPlayerMessage"]?.setView(view)
+        regularTasks["GetMulticastPlayerMessage"] = GetMulticastMessage
+        regularTasks["GetMulticastPlayerMessage"]?.setView(view)
     }
 
     fun startMasterTasks() {

@@ -1,7 +1,7 @@
 package view
 
 import creator.config
-import model.Direction
+import me.ippolitov.fit.snakes.SnakesProto
 import presentation.move.Move
 import presentation.move.moveimpl.MoveFromButton
 import presentation.move.moveimpl.StartNewGame
@@ -19,19 +19,19 @@ class SwingView(queue : ArrayBlockingQueue<Pair<Move, List<Any?>>>) : View {
     private fun addMoveButtons(panel : JPanel) {
         val contentsButtons = JPanel(BorderLayout())
         val upButton = JButton("up")
-        upButton.addActionListener { queue.put(Pair(MoveFromButton, listOf(Direction.UP))) }
+        upButton.addActionListener { queue.put(Pair(MoveFromButton, listOf(SnakesProto.Direction.UP))) }
         contentsButtons.add(upButton, BorderLayout.NORTH)
 
         val downButton = JButton("down")
-        downButton.addActionListener { queue.put(Pair(MoveFromButton, listOf(Direction.DOWN))) }
+        downButton.addActionListener { queue.put(Pair(MoveFromButton, listOf(SnakesProto.Direction.DOWN))) }
         contentsButtons.add(downButton, BorderLayout.SOUTH)
 
         val rightButton = JButton("right")
-        rightButton.addActionListener { queue.put(Pair(MoveFromButton, listOf(Direction.RIGHT))) }
+        rightButton.addActionListener { queue.put(Pair(MoveFromButton, listOf(SnakesProto.Direction.RIGHT))) }
         contentsButtons.add(rightButton, BorderLayout.EAST)
 
         val leftButton = JButton("left")
-        leftButton.addActionListener { queue.put(Pair(MoveFromButton, listOf(Direction.LEFT))) }
+        leftButton.addActionListener { queue.put(Pair(MoveFromButton, listOf(SnakesProto.Direction.LEFT))) }
         contentsButtons.add(leftButton, BorderLayout.WEST)
 
         panel.add(contentsButtons)

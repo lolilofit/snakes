@@ -1,9 +1,9 @@
-package presentation.move.moveimpl.message
+package presentation.move.moveimpl
 
 import creator.config
 import creator.globalState
+import me.ippolitov.fit.snakes.SnakesProto
 import model.Coord
-import model.Direction
 import model.Field
 import model.Snake
 import presentation.ImmediateQueue
@@ -14,9 +14,11 @@ object SteerMsgImpl : Move {
     private var forwardMove : Boolean = false
 
     private fun checkForFood(snake : Snake, field: Field) : Boolean {
-
         globalState.foods.forEach { food ->
             if ((snake.points[0].x + config.width)% config.width == food.x && (snake.points[0].y + config.height)% config.height == food.y) {
+                val player = globalState.game_players.players.stream().filter{it.id == snake.player_id}.findFirst()
+                if(player.isPresent) player.get().score++
+
                 field.field[food.y][food.y] = 0
                 field.free.add(food)
                 globalState.foods.remove(food)
@@ -28,44 +30,43 @@ object SteerMsgImpl : Move {
             globalState.foods.remove(snake.points[0])
             return true
         }
-
           */
         return false
     }
-    fun calkForwardDirection(snake: Snake) : Direction? {
+    fun calkForwardDirection(snake: Snake) : SnakesProto.Direction? {
         val second = snake.points[1]
         if (second.y < 0)
-            return Direction.DOWN
+            return SnakesProto.Direction.DOWN
         if (second.y > 0)
-               return Direction.UP
+               return SnakesProto.Direction.UP
         if (second.x > 0)
-              return Direction.LEFT
+              return SnakesProto.Direction.LEFT
         if (second.x < 0)
-                return Direction.RIGHT
+                return SnakesProto.Direction.RIGHT
         return null
     }
 
-     private fun checkValidDirection(snake : Snake, direction: Direction, forwardAllow : Boolean) : Boolean {
+     private fun checkValidDirection(snake : Snake, direction: SnakesProto.Direction, forwardAllow : Boolean) : Boolean {
             val second = snake.points[1]
-            if (direction == Direction.DOWN) {
+            if (direction == SnakesProto.Direction.DOWN) {
                 if (second.y > 0)
                     return false
                 if (second.y < 0)
                     forwardMove = true
             }
-            if (direction == Direction.UP) {
+            if (direction == SnakesProto.Direction.UP) {
                 if (second.y < 0)
                     return false
                 if (second.y > 0)
                     forwardMove = true
             }
-            if (direction == Direction.LEFT) {
+            if (direction == SnakesProto.Direction.LEFT) {
                 if (second.x < 0)
                     return false
                 if (second.x > 0)
                     forwardMove = true
             }
-            if (direction == Direction.RIGHT) {
+            if (direction == SnakesProto.Direction.RIGHT) {
                 if (second.x > 0)
                     return false
                 if (second.x < 0)
@@ -124,10 +125,10 @@ object SteerMsgImpl : Move {
         snake.points = copy
     }
 
-    private fun makeMove(direction: Direction, snake: Snake, field: Field)  : Boolean {
+    private fun makeMove(direction: SnakesProto.Direction, snake: Snake, field: Field)  : Boolean {
         field.removeSnake(snake)
 
-        if(direction == Direction.DOWN) {
+        if(direction == SnakesProto.Direction.DOWN) {
             if(forwardMove) {
                 if ((snake.points[0].y + 1) > (config.height - 1))
                     snake.points[0].y = 0
@@ -139,7 +140,7 @@ object SteerMsgImpl : Move {
                 addPoint(snake, Coord(snake.points[0].x, (snake.points[0].y + 1) % (config.height)), 0, -1)
             }
         }
-        if(direction == Direction.UP) {
+        if(direction == SnakesProto.Direction.UP) {
             if (forwardMove) {
                 if ((snake.points[0].y - 1) < 0)
                     snake.points[0].y = config.height - 1
@@ -151,7 +152,7 @@ object SteerMsgImpl : Move {
             }
 
         }
-        if(direction == Direction.LEFT) {
+        if(direction == SnakesProto.Direction.LEFT) {
             if(forwardMove) {
                 if((snake.points[0].x - 1) < 0)
                     snake.points[0].x = config.width - 1
@@ -163,7 +164,7 @@ object SteerMsgImpl : Move {
                 addPoint(snake, Coord((snake.points[0].x - 1) % (config.width), snake.points[0].y), 1, 0)
             }
         }
-        if(direction == Direction.RIGHT) {
+        if(direction == SnakesProto.Direction.RIGHT) {
             if(forwardMove) {
                 if((snake.points[0].x + 1) > (config.width - 1))
                     snake.points[0].x = 0
@@ -190,11 +191,11 @@ object SteerMsgImpl : Move {
 
     override fun execute(param: List<Any?>) {
         if(param.size != 4) return
-        if(param[0] !is Direction) return
+        if(param[0] !is SnakesProto.Direction) return
         if(param[1] !is Snake)  return
         if(param[2] !is Field)  return
         if(param[3] !is Boolean) return
-        val direction : Direction = param[0] as Direction
+        val direction : SnakesProto.Direction = param[0] as SnakesProto.Direction
         val field = param[2] as Field
         val snake : Snake = param[1] as Snake
         val forwardAllow = param[3] as Boolean
@@ -208,6 +209,8 @@ object SteerMsgImpl : Move {
 
             if(!checkForSnakes(field, snake)) {
                 System.out.println("REMOVE")
+                val player = globalState.game_players.players.find { it.id == snake.player_id }
+                player?.role = SnakesProto.NodeRole.VIEWER
                 field.removeSnake(snake)
                 globalState.snakes.remove(snake)
                 return

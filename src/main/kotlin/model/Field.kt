@@ -4,7 +4,6 @@ import creator.config
 import creator.globalState
 import me.ippolitov.fit.snakes.SnakesProto
 import presentation.ImmediateQueue
-import presentation.move.moveimpl.message.SteerMsgImpl
 
 class Field {
     val field = Array(config.height) { Array(config.width) { 0 } }

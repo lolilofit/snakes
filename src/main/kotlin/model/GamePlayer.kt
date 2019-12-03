@@ -7,6 +7,6 @@ data class GamePlayer(
         val id : Int,
         val ip_address : String,
         val port : Int,
-        val role : SnakesProto.NodeRole,
-        val score : Int
+        var role : SnakesProto.NodeRole,
+        var score : Int
 )

@@ -2,6 +2,7 @@ package presentation.move.moveimpl
 
 import creator.config
 import creator.globalState
+import me.ippolitov.fit.snakes.SnakesProto
 import model.Coord
 import model.Field
 import model.NodeRole
@@ -13,7 +14,7 @@ object ThrowFood : Move {
     private fun aliveCount(): Int {
         var count = 0
         globalState.game_players.players.forEach { player ->
-            if (player.role != NodeRole.VIEWER)
+            if (player.role != SnakesProto.NodeRole.VIEWER)
                 count++
         }
         return count

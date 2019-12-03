@@ -5,9 +5,10 @@ import kotlinx.coroutines.delay
 import model.Field
 import presentation.ImmediateQueue
 import presentation.move.Move
-import presentation.move.moveimpl.AnnounsmentIpl
+import presentation.move.moveimpl.SendAnnounsment
+import presentation.move.moveimpl.StateMsgImpl
 import presentation.move.moveimpl.ThrowFood
-import presentation.move.moveimpl.message.SteerMsgImpl
+import presentation.move.moveimpl.SteerMsgImpl
 import view.View
 import java.util.concurrent.ArrayBlockingQueue
 import kotlin.collections.ArrayList
@@ -23,7 +24,9 @@ object TimeoutQueue : Task {
     override fun setView(view: View) {this.view = view}
 
     fun addToQueue(move : Move, params : List<Any?>) {
-        queue.put(Pair(move, params))
+        synchronized(TimeoutQueue::class) {
+            queue.put(Pair(move, params))
+        }
     }
 
     private fun pushForwardUnsended() {
@@ -42,11 +45,14 @@ object TimeoutQueue : Task {
         var countMes : Long = 0
         var lastPushForward = System.currentTimeMillis()
         var lastAnnouncementMessage : Long = 0
+        var lastMessageSended : Long = System.currentTimeMillis()
+
         while(true) {
             //send announcment
             if(System.currentTimeMillis() - lastAnnouncementMessage >= 1000) {
                 lastAnnouncementMessage = System.currentTimeMillis()
-                AnnounsmentIpl.execute(listOf(countMes))
+                lastMessageSended = System.currentTimeMillis()
+                SendAnnounsment.execute(listOf(countMes))
             }
             countMes++
 
@@ -64,6 +70,7 @@ object TimeoutQueue : Task {
             if(System.currentTimeMillis() - lastPushForward > 500) {
                 lastPushForward = System.currentTimeMillis()
                 pushForwardUnsended()
+                StateMsgImpl.execute(emptyList())
             }
             view.update()
             delay(10)

@@ -33,7 +33,7 @@ object StartNewGame : Move {
 
         MasterTools.startMasterTasks()
         SelfInfo.selfId = 0
-        SelfInfo.masterinfo = 0
+        SelfInfo.masterInfo = 0
         view.update()
         return
     }
