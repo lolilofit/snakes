@@ -6,6 +6,7 @@ import kotlinx.coroutines.delay
 import me.ippolitov.fit.snakes.SnakesProto
 import presentation.ImmediateQueue
 import presentation.SelfInfo
+import presentation.move.moveimpl.SendChangeRole
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
@@ -39,15 +40,20 @@ object Resender {
             val master = masteAndDeputy.find { it.role ==  SnakesProto.NodeRole.MASTER}
             val deputy = masteAndDeputy.find { it.role == SnakesProto.NodeRole.DEPUTY }
 
+            //???
             if(resendThis.message.msgSeq == master?.id?.toLong()) {
                 globalState.snakes.remove(globalState.snakes.find { it.player_id.toLong() == resendThis.message.msgSeq })
                 globalState.game_players.players.remove(master)
                 deputy?.role = SnakesProto.NodeRole.MASTER
+                SendChangeRole.execute(listOf(master.ip_address, master.port, SnakesProto.NodeRole.NORMAL, SnakesProto.NodeRole.VIEWER, SelfInfo.selfId, master.id))
+                SendChangeRole.execute(listOf(deputy?.ip_address, deputy?.port, SnakesProto.NodeRole.VIEWER, SnakesProto.NodeRole.DEPUTY, SelfInfo.selfId, deputy?.id))
+
             }
             if(SelfInfo.selfId == master?.id && resendThis.message.msgSeq == deputy?.id?.toLong()) {
                 globalState.snakes.remove(globalState.snakes.find { it.player_id.toLong() == resendThis.message.msgSeq })
                 globalState.game_players.players.remove(deputy)
                 globalState.game_players.players[Random.nextInt(0, globalState.game_players.players.size)].role = SnakesProto.NodeRole.DEPUTY
+                ///
             }
         }
     }

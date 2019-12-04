@@ -67,6 +67,8 @@ object GetRegularPayerMessage : Task {
             if(protoElement.hasPing()) {
                 //PingReaction
             }
+            if(protoElement.hasRoleChange())
+                ChangeRoleReaction.execute(protoElement, packet, currentGames, view, acked)
         }
     }
 

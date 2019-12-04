@@ -3,6 +3,7 @@ package view
 import creator.config
 import me.ippolitov.fit.snakes.SnakesProto
 import presentation.move.Move
+import presentation.move.moveimpl.Exit
 import presentation.move.moveimpl.MoveFromButton
 import presentation.move.moveimpl.StartNewGame
 import java.awt.BorderLayout
@@ -42,8 +43,11 @@ class SwingView(queue : ArrayBlockingQueue<Pair<Move, List<Any?>>>) : View {
         val newGame = JButton("New Game")
         newGame.addActionListener { queue.put(Pair(StartNewGame, listOf(this))) }
         panel.add(newGame)
-        val connectTogame = JButton("show games")
+        val connectTogame = JButton("Show games")
         panel.add(connectTogame)
+        val exit = JButton("Exit")
+        exit.addActionListener { Exit.execute(emptyList()) }
+        panel.add(exit)
     }
 
     private fun createGameField() {
