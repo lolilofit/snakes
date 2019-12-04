@@ -17,6 +17,7 @@ import java.util.*
 object MoveFromButton : Move {
     override fun execute(param: List<Any?>) {
         val direction = if(param[0] is SnakesProto.Direction) param[0] as SnakesProto.Direction else return
+
         var masterInfo : Optional<GamePlayer>
         synchronized(ImmediateQueue::class) {
                 masterInfo = globalState.game_players.players.stream().filter{it.role == SnakesProto.NodeRole.MASTER}.findFirst()
@@ -43,7 +44,8 @@ object MoveFromButton : Move {
         val packet = DatagramPacket(binaryMessage, binaryMessage.size, InetAddress.getByName(SelfInfo.masterIp), SelfInfo.masterPort)
         SelfInfo.regularSocket.send(packet)
         mesSeq.incrementAndGet()
-        Resender.addToResendQueue(packet.address.toString().replace("/", ""), packet.port, message, System.currentTimeMillis())
+        if(masterInfo.isPresent)
+            Resender.addToResendQueue(packet.address.toString().replace("/", ""), packet.port, message, System.currentTimeMillis(), masterInfo.get().id)
         //send to master
     }
 }

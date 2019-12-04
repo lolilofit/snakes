@@ -11,17 +11,20 @@ import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
 import java.util.concurrent.ArrayBlockingQueue
-import kotlin.random.Random
 import kotlin.streams.toList
 
 object Resender {
-    private data class ResendObj(val ip : String, val port : Int, val message : SnakesProto.GameMessage, val timeSended : Long)
+    private data class ResendObj(val ip : String, val port : Int, val message : SnakesProto.GameMessage, val timeSended : Long, val recverId : Int)
     private val acked : MutableList<Long> = ArrayList()
     private val queue: ArrayBlockingQueue<ResendObj> = ArrayBlockingQueue(100, true)
     private val backToResend : MutableList<ResendObj> = ArrayList()
 
-    fun addToResendQueue(ip : String, port : Int, message: SnakesProto.GameMessage, time : Long) {
-        queue.add(ResendObj(ip, port, message, time))
+    fun addToResendQueue(ip : String, port : Int, message: SnakesProto.GameMessage, time : Long, recverId: Int) {
+        synchronized(ImmediateQueue::class) {
+            val player = globalState.game_players.players.find { it.id == recverId }
+            if(player?.role != SnakesProto.NodeRole.VIEWER)
+                queue.add(ResendObj(ip, port, message, time, recverId))
+        }
     }
     fun addAcked(mesId : Long) {
         acked.add(mesId)
@@ -41,20 +44,23 @@ object Resender {
             val deputy = masteAndDeputy.find { it.role == SnakesProto.NodeRole.DEPUTY }
 
             //???
-            if(resendThis.message.msgSeq == master?.id?.toLong()) {
-                globalState.snakes.remove(globalState.snakes.find { it.player_id.toLong() == resendThis.message.msgSeq })
-                globalState.game_players.players.remove(master)
+            if(resendThis.recverId == master?.id) {
                 deputy?.role = SnakesProto.NodeRole.MASTER
-                SendChangeRole.execute(listOf(master.ip_address, master.port, SnakesProto.NodeRole.NORMAL, SnakesProto.NodeRole.VIEWER, SelfInfo.selfId, master.id))
-                SendChangeRole.execute(listOf(deputy?.ip_address, deputy?.port, SnakesProto.NodeRole.VIEWER, SnakesProto.NodeRole.DEPUTY, SelfInfo.selfId, deputy?.id))
+                SendChangeRole.execute(listOf(deputy?.ip_address, deputy?.port, SnakesProto.NodeRole.NORMAL, SnakesProto.NodeRole.MASTER, SelfInfo.selfId, deputy?.id))
 
+                globalState.game_players.players.forEach{player ->
+                    if(player.role != SnakesProto.NodeRole.MASTER)
+                        SendChangeRole.execute(listOf(player.ip_address, player.port, SnakesProto.NodeRole.MASTER, SnakesProto.NodeRole.NORMAL, deputy?.id, player.id))
+                }
             }
-            if(SelfInfo.selfId == master?.id && resendThis.message.msgSeq == deputy?.id?.toLong()) {
-                globalState.snakes.remove(globalState.snakes.find { it.player_id.toLong() == resendThis.message.msgSeq })
-                globalState.game_players.players.remove(deputy)
-                globalState.game_players.players[Random.nextInt(0, globalState.game_players.players.size)].role = SnakesProto.NodeRole.DEPUTY
+            if(SelfInfo.selfId == master?.id && resendThis.recverId == deputy?.id) {
+                val newDeputy = globalState.game_players.players.find{it.role != SnakesProto.NodeRole.MASTER && it.role != SnakesProto.NodeRole.VIEWER}
+                newDeputy?.role = SnakesProto.NodeRole.DEPUTY
+                SendChangeRole.execute(listOf(newDeputy?.ip_address, newDeputy?.port, SnakesProto.NodeRole.NORMAL, SnakesProto.NodeRole.DEPUTY, SelfInfo.selfId, newDeputy?.id))
                 ///
             }
+            globalState.snakes.remove(globalState.snakes.find { it.player_id == resendThis.recverId })
+            globalState.game_players.players.find { it.id == resendThis.recverId }?.role = SnakesProto.NodeRole.VIEWER
         }
     }
 

@@ -33,9 +33,9 @@ object JoinReaction : MessagesType {
 
                 SelfInfo.masterPort = packet.port
                 SelfInfo.masterIp = packet.address.toString().replace("/", "")
+                TimeoutQueue.addToQueue(AddNewSnake, listOf(playerId))
+                playerId++
             }
-            TimeoutQueue.addToQueue(AddNewSnake, listOf(playerId))
-            playerId++
         }
         SendAck.execute(listOf(packet.address.toString().replace("/", ""), packet.port, protoElement.msgSeq))
     }

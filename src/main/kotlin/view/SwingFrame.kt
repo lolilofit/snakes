@@ -1,14 +1,17 @@
 package view
 
+import creator.config
 import creator.globalState
 import model.Snake
 import presentation.ImmediateQueue
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Graphics
+import java.awt.Graphics2D
+import java.awt.geom.Ellipse2D
 import javax.swing.JComponent
 import javax.swing.JFrame
-import kotlin.math.abs
+
 
 val cellSize = 20
 
@@ -34,10 +37,6 @@ class CustomGraphics(width : Int, height : Int) : JComponent() {
         preferredSize = Dimension(width*cellSize, height* cellSize)
     }
 
-    private fun parabol(x : Int) : Int {
-        return cellSize + (x-(3/10)*cellSize)*(x-(3/10)*cellSize) - (1/100)* cellSize*cellSize
-    }
-
     private fun drawBackground(g : Graphics?) {
         g?.fillRect(0, 0, width* cellSize, height*cellSize)
         g?.color = Color.GRAY
@@ -47,7 +46,7 @@ class CustomGraphics(width : Int, height : Int) : JComponent() {
             g?.drawLine(cellSize*i + cellSize, 0, cellSize*i+ cellSize, height* cellSize)
     }
     private fun drawFood(g : Graphics?) {
-        g?.color = Color.BLUE
+        g?.color = Color.WHITE
         globalState.foods.forEach{food ->
             for (i in (cellSize / 5)..(cellSize - cellSize / 5)) {
                 g?.drawLine(food.x * cellSize, (food.y) * cellSize + i, food.x * cellSize + cellSize, (food.y) * cellSize + i)
@@ -55,14 +54,20 @@ class CustomGraphics(width : Int, height : Int) : JComponent() {
         }
     }
 
+
     public override fun paintComponent(g: Graphics?) {
         super.paintComponent(g)
+
         drawBackground(g)
+        var cycle = 0
 
         synchronized(ImmediateQueue::class) {
             drawFood(g)
-            g?.color = Color.GREEN
+
             globalState.snakes.forEach { snake ->
+
+                g?.color = Color((snake.player_id*snake.player_id*200 + (cycle/2)*100)%255, (snake.player_id*snake.player_id*100 + 200*(if(cycle == 0) 1 else 0))%255, (snake.player_id*10 + (cycle/3)*100)%255)
+                cycle = (cycle+1)%3
                 var x1 = snake.points[0].x
                 var y1 = snake.points[0].y
                 var x2 = x1
@@ -122,6 +127,13 @@ class CustomGraphics(width : Int, height : Int) : JComponent() {
                         }
                     }
                 }
+                g?.color = Color.WHITE
+                val x = snake.points[0].x* cellSize + cellSize/5
+                val y  = snake.points[0].y* cellSize + cellSize/5
+
+                val g2d = g as Graphics2D
+                val circle : Ellipse2D.Double  = Ellipse2D.Double(x.toDouble(), y.toDouble() + cellSize.toDouble()/5,  (cellSize).toDouble()/4.0, (cellSize).toDouble()/4.0);
+                g2d.fill(circle)
             }
         }
     }

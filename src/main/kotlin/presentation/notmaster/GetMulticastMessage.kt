@@ -1,5 +1,6 @@
 package presentation.notmaster
 
+import creator.currentGames
 import creator.globalState
 import me.ippolitov.fit.snakes.SnakesProto
 import model.CurrentGame
@@ -17,8 +18,6 @@ import java.util.concurrent.atomic.AtomicLong
 
 object GetMulticastMessage : Task {
     private lateinit var view : View
-    private val currentGames : CurrentGames = CurrentGames(HashMap())
-    fun getCurrentGames() = currentGames
 
     private val acked : MutableMap<Pair<String, Int>, AtomicLong> = HashMap()
     override fun cleanup() {
@@ -38,6 +37,7 @@ object GetMulticastMessage : Task {
 
             if(protoElement.hasAnnouncement()) {
                 AnnouncementReaction.execute(protoElement, packet, currentGames, view, acked)
+                /*
                 if(globalState.game_players.players.size == 0) {
                     val p : CurrentGame? = currentGames.currentGames[Pair(packet.address.toString().replace("/", ""), packet.port)]
                     if(p != null) {
@@ -49,6 +49,8 @@ object GetMulticastMessage : Task {
                         ))
                     }
                 }
+
+                 */
             }
             if(protoElement.hasJoin())
                 JoinReaction.execute(protoElement, packet, currentGames, view, acked)

@@ -38,7 +38,10 @@ object TimeoutQueue : Task {
                                 list.add(listOf(direction, snake, field, true))
                         }
             }
-        list.forEach{param -> SteerMsgImpl.execute(param)}
+        list.forEach{param ->
+            SteerMsgImpl.execute(param)
+            field.createField()
+        }
     }
 
     override suspend fun run() {
@@ -48,7 +51,8 @@ object TimeoutQueue : Task {
         var lastMessageSended : Long = System.currentTimeMillis()
 
         while(true) {
-            //send announcment
+
+            field.createField()
             if(System.currentTimeMillis() - lastAnnouncementMessage >= 1000) {
                 lastAnnouncementMessage = System.currentTimeMillis()
                 lastMessageSended = System.currentTimeMillis()
@@ -58,7 +62,6 @@ object TimeoutQueue : Task {
 
             if(!queue.isEmpty()) {
                 val move = queue.poll()
-                field.createField()
                 val params = ArrayList(move.second)
                 params.add(field)
                 if(move.first is SteerMsgImpl)

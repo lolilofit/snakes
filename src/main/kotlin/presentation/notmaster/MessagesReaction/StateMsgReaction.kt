@@ -40,6 +40,8 @@ object StateMsgReaction : MessagesType {
                 System.out.println("NO MASTER")
                 return
             }
+            masterInfo.get().ip_address = packet.address.toString().replace("/", "")
+            masterInfo.get().port = packet.port
             SelfInfo.masterIp = packet.address.toString().replace("/", "")
             SelfInfo.masterInfo = masterInfo.get().id
             SelfInfo.masterPort = packet.port

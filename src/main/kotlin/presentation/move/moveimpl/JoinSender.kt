@@ -12,6 +12,8 @@ import presentation.notmaster.Resender
 import java.net.DatagramPacket
 import java.net.InetAddress
 
+
+//убрать последний аргумент
 object JoinSender : Move {
     override fun execute(param: List<Any?>) {
         if(param.size != 5) return
@@ -19,8 +21,6 @@ object JoinSender : Move {
         val port = if(param[1] is Int) (param[1] as Int) else return
         val currentGame = if(param[2] is CurrentGame) (param[2] as CurrentGame) else return
         val name = if(param[3] is String) (param[3] as String) else return
-        val _mesSeq = if(param[4] is Long) (param[4] as Long) else return
-
 
         synchronized(ImmediateQueue::class) {
             config = currentGame.config
@@ -35,7 +35,8 @@ object JoinSender : Move {
         val binaryMessage = protoMessage.toByteArray()
         val packet = DatagramPacket(binaryMessage, binaryMessage.size, InetAddress.getByName(ipStr), port)
         SelfInfo.regularSocket.send(packet)
-        Resender.addToResendQueue(ipStr, port, protoMessage, System.currentTimeMillis())
+
+        Resender.addToResendQueue(ipStr, port, protoMessage, System.currentTimeMillis(), -1)
         mesSeq.incrementAndGet()
     }
 }

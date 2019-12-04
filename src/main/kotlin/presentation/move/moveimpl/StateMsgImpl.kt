@@ -26,7 +26,8 @@ object StateMsgImpl : Move{
                     val packet = DatagramPacket(binaryMessage, binaryMessage.size, InetAddress.getByName(player.ip_address), player.port)
                     SelfInfo.regularSocket.send(packet)
                     mesSeq.incrementAndGet()
-                    Resender.addToResendQueue(packet.address.toString().replace("/", ""), packet.port, message, System.currentTimeMillis())
+
+                   Resender.addToResendQueue(packet.address.toString().replace("/", ""), packet.port, message, System.currentTimeMillis(), player.id)
                 }
             }
         }

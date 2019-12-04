@@ -7,5 +7,6 @@ data class CurrentGame (
     )
 
 data class CurrentGames (
-    val currentGames : MutableMap<Pair<String, Int>, CurrentGame>
+        //master adr and game
+    val currentGames : MutableMap<Pair<String, Int>, CurrentGame> = HashMap()
 )

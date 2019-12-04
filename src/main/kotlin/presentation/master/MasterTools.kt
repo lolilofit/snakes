@@ -34,14 +34,11 @@ object MasterTools {
 
     fun startNonMaster() {
         launchedTasks.clear()
-        regularTasks.forEach{task -> launchedTasks.push(GlobalScope.launch {
-            task.value.run() })
-        }
+        regularTasks.forEach{ task -> GlobalScope.launch { task.value.run() } }
     }
 
     fun endMasterTasks() {
         launchedTasks.forEach{job -> job.cancel()}
         launchedTasks.clear()
-        regularTasks.forEach{task -> launchedTasks.push(GlobalScope.launch { task.value.run() }) }
     }
 }

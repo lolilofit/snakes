@@ -7,6 +7,7 @@ import model.Coord
 import model.Field
 import model.Snake
 import presentation.ImmediateQueue
+import presentation.SelfInfo
 import presentation.move.Move
 
 
@@ -25,12 +26,6 @@ object SteerMsgImpl : Move {
                 return true
             }
         }
-         /*
-        if(field.field[(snake.points[0].y + config.height)% config.height][(snake.points[0].x + config.width)% config.width] < 0) {
-            globalState.foods.remove(snake.points[0])
-            return true
-        }
-          */
         return false
     }
     fun calkForwardDirection(snake: Snake) : SnakesProto.Direction? {
@@ -77,8 +72,30 @@ object SteerMsgImpl : Move {
          return true
     }
 
+    private fun probablyBecomeFood (snake : Snake) {
+
+    }
     //if two heads to one cell
     private fun checkForSnakes(field: Field, selfSnake: Snake) : Boolean {
+        if(selfSnake.player_id == 1)
+            print("  ")
+        var headFlag = false
+
+        var snakeToDelete : Snake? = null
+        globalState.snakes.forEach{snake ->
+            if(snake.player_id != selfSnake.player_id && selfSnake.points[0] == snake.points[0]) {
+                headFlag = true
+                globalState.game_players.players.find { it.id ==  snake.player_id}?.role = SnakesProto.NodeRole.VIEWER
+                snakeToDelete = snake
+                return@forEach
+            }
+        }
+        if(headFlag) {
+            //if(SelfInfo.selfId == snakeToDelete?.player_id)
+            globalState.snakes.remove(snakeToDelete)
+            return false
+        }
+
         val head = selfSnake.points[0]
          if(field.field[(head.y+ config.height)%config.height][(head.x+ config.width)% config.width] > 0)
              return false
@@ -201,6 +218,8 @@ object SteerMsgImpl : Move {
         val forwardAllow = param[3] as Boolean
         forwardMove = false
 
+        if(snake.player_id == 1)
+            print(" ")
         synchronized(ImmediateQueue::class) {
             if(!checkValidDirection(snake, direction, forwardAllow)) return
             if(makeMove(direction, snake, field)) {
@@ -210,6 +229,7 @@ object SteerMsgImpl : Move {
             if(!checkForSnakes(field, snake)) {
                 System.out.println("REMOVE")
                 val player = globalState.game_players.players.find { it.id == snake.player_id }
+                //if(snake.player_id == SelfInfo.selfId)
                 player?.role = SnakesProto.NodeRole.VIEWER
                 field.removeSnake(snake)
                 globalState.snakes.remove(snake)
