@@ -1,0 +1,9 @@
+width = 20
+height = 20
+foodStatic = 1
+foodPerPlayer = 1
+stateDelayMs = 100
+pingDelayMs = 100
+deadFoodProb = 50
+nodeTimeoutMs = 300
+name = Player

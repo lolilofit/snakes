@@ -67,13 +67,14 @@ object TimeoutQueue : Task {
                 if(move.first is SteerMsgImpl)
                     params.add(false)
                 move.first.execute(params)
-                ThrowFood.execute(listOf(field))
             }
 
-            if(System.currentTimeMillis() - lastPushForward > 500) {
+
+            if(System.currentTimeMillis() - lastPushForward > 300) {
                 lastPushForward = System.currentTimeMillis()
                 pushForwardUnsended()
                 StateMsgImpl.execute(emptyList())
+                ThrowFood.execute(listOf(field))
             }
             view.update()
             delay(10)

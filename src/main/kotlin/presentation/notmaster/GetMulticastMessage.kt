@@ -37,20 +37,7 @@ object GetMulticastMessage : Task {
 
             if(protoElement.hasAnnouncement()) {
                 AnnouncementReaction.execute(protoElement, packet, currentGames, view, acked)
-                /*
-                if(globalState.game_players.players.size == 0) {
-                    val p : CurrentGame? = currentGames.currentGames[Pair(packet.address.toString().replace("/", ""), packet.port)]
-                    if(p != null) {
-                        JoinSender.execute(listOf(packet.address.toString().replace("/", ""),
-                                packet.port,
-                                p as CurrentGame,
-                                "play",
-                                0.toLong()
-                        ))
-                    }
-                }
 
-                 */
             }
             if(protoElement.hasJoin())
                 JoinReaction.execute(protoElement, packet, currentGames, view, acked)
@@ -61,7 +48,6 @@ object GetMulticastMessage : Task {
             if(protoElement.hasSteer()) {
                 SteerMessageReaction.execute(protoElement, packet, currentGames, view, acked)
             }
-         //   System.out.println("got message from other player")
         }
     }
 

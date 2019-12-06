@@ -39,8 +39,8 @@ object AddNewSnake : Move{
                 findStep = 0
                 loop1@ for (y1 in 0 until (5)) {
                     for (x1 in 4 downTo 0 step 1) {
-                        if (field.field[(y + y1 + height)%height][(x + x1 + width) % width] != 0) {
-                            while (field.field[y + y1][(x + x1 + findStep + width)%width] != 0) {
+                        if (field.field[(y + y1 + height)%height][(x + x1 + width) % width][0] != 0) {
+                            while (field.field[y + y1][(x + x1 + findStep + width)%width][0] != 0) {
                                 findStep++
                             }
                             stepX = x1 + findStep

@@ -67,7 +67,6 @@ object Resender {
     private fun resendMessage(resendThis : ResendObj, nodeTimeoutMs : Int, socket: DatagramSocket) {
         if(acked.contains(resendThis.message.msgSeq)) {
             //acked.remove(resendThis.message.msgSeq)
-            print("got ack")
             return
         }
 
@@ -76,7 +75,6 @@ object Resender {
             gamerDied(resendThis)
         }
         else {
-            print("resend")
             val binaryMessage  = resendThis.message.toByteArray()
             socket.send(DatagramPacket(binaryMessage, binaryMessage.size, InetAddress.getByName(resendThis.ip), resendThis.port))
             backToResend.add(resendThis)

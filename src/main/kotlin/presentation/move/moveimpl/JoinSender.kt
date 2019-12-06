@@ -7,6 +7,7 @@ import me.ippolitov.fit.snakes.SnakesProto
 import model.CurrentGame
 import presentation.ImmediateQueue
 import presentation.SelfInfo
+import presentation.master.MasterTools
 import presentation.move.Move
 import presentation.notmaster.Resender
 import java.net.DatagramPacket
@@ -23,11 +24,18 @@ object JoinSender : Move {
         val name = if(param[3] is String) (param[3] as String) else return
 
         synchronized(ImmediateQueue::class) {
+            globalState.foods.clear()
             config = currentGame.config
             globalState.snakes.clear()
             globalState.game_players.players.clear()
             globalState.game_players.players = currentGame.players.players
+            SelfInfo.masterIp = ipStr
+            SelfInfo.masterPort = port
+            SelfInfo.masterInfo = -1
+            SelfInfo.selfId = -1
         }
+        MasterTools.endMasterTasks()
+
         val protoMessage = SnakesProto.GameMessage.newBuilder()
                 .setJoin(SnakesProto.GameMessage.JoinMsg.newBuilder().setName(name))
                 .setMsgSeq(mesSeq.get())

@@ -12,11 +12,10 @@ import presentation.move.moveimpl.StartNewGame
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.GridLayout
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
 import java.util.concurrent.ArrayBlockingQueue
-import javax.swing.JButton
-import javax.swing.JPanel
-import javax.swing.JScrollPane
-import javax.swing.JTable
+import javax.swing.*
 import javax.swing.table.DefaultTableModel
 
 class SwingView(queue : ArrayBlockingQueue<Pair<Move, List<Any?>>>) : View {
@@ -27,6 +26,20 @@ class SwingView(queue : ArrayBlockingQueue<Pair<Move, List<Any?>>>) : View {
     private val tableData = TableData()
     private val table = JTable(DefaultTableModel(tableData.data, tableData.names))
     private val connectGame = ConnectGameView()
+
+    private class MyKeyListener(val queue: ArrayBlockingQueue<Pair<Move, List<Any?>>>) : KeyAdapter() {
+        override fun keyReleased(e: KeyEvent?) {
+            val ch = e?.keyCode
+            if(ch == KeyEvent.VK_UP)
+                queue.put(Pair(MoveFromButton, listOf(SnakesProto.Direction.UP)))
+            if(ch == KeyEvent.VK_DOWN)
+                queue.put(Pair(MoveFromButton, listOf(SnakesProto.Direction.DOWN)))
+            if(ch == KeyEvent.VK_RIGHT)
+                queue.put(Pair(MoveFromButton, listOf(SnakesProto.Direction.RIGHT)))
+            if(ch ==  KeyEvent.VK_LEFT)
+                queue.put(Pair(MoveFromButton, listOf(SnakesProto.Direction.LEFT)))
+        }
+    }
 
     private fun addMoveButtons(panel : JPanel) {
         val contentsButtons = JPanel(BorderLayout())
@@ -52,14 +65,17 @@ class SwingView(queue : ArrayBlockingQueue<Pair<Move, List<Any?>>>) : View {
 
     private fun addRightPanel(panel : JPanel) {
         val newGame = JButton("New Game")
+        newGame.addKeyListener(MyKeyListener(queue))
         newGame.addActionListener { queue.put(Pair(StartNewGame, listOf(this))) }
         panel.add(newGame)
         val connectTogame = JButton("Show games")
+        connectTogame.addKeyListener(MyKeyListener(queue))
         connectTogame.addActionListener{
             GlobalScope.launch { connectGame.run() }
         }
         panel.add(connectTogame)
         val exit = JButton("Exit")
+        exit.addKeyListener(MyKeyListener(queue))
         exit.addActionListener { Exit.execute(emptyList()) }
         panel.add(exit)
     }
@@ -69,22 +85,31 @@ class SwingView(queue : ArrayBlockingQueue<Pair<Move, List<Any?>>>) : View {
         panel.add(pane)
     }
 
+    private  fun addKeyMove(contentsButtons : JPanel) {
+            contentsButtons.addKeyListener(MyKeyListener(queue))
+    }
+
     private fun createGameField() {
         frame = SwingFrame("Snakes")
-        val contents = JPanel(GridLayout(2, 3, 1, 1))
+        val contents = JPanel(GridLayout(1, 2, 5, 5))
         val panel = JPanel()
         val secondary = JPanel()
+        secondary.layout = BoxLayout(secondary, BoxLayout.PAGE_AXIS)
         val table = JPanel()
-
+        val buttonsPanel = JPanel()
+        contents.isFocusable = true
+        contents.focusTraversalKeysEnabled = false
 
         panel.add(graphic)
-        addMoveButtons(secondary)
-        addRightPanel(secondary)
         drawTable(table)
-        table.preferredSize = Dimension(300, 200)
-
-        contents.add(panel )
-        contents.add(table)
+        secondary.add(table)
+        //addMoveButtons(buttonsPanel)
+        addRightPanel(buttonsPanel)
+        secondary.add(buttonsPanel)
+        addKeyMove(contents)
+        addKeyMove(buttonsPanel)
+        table.preferredSize = Dimension(500, 100)
+        contents.add(panel)
         contents.add(secondary)
 
         frame.contentPane = contents
@@ -107,13 +132,14 @@ class SwingView(queue : ArrayBlockingQueue<Pair<Move, List<Any?>>>) : View {
                 if(flag)
                     model.addRow(arrayOf(player.name, player.score.toString()))
             }
+            graphic.setSizes(config.height, config.width)
             frame.validate()
             frame.repaint()
         }
     }
 
     fun run() {
-        graphic = CustomGraphics(config.width, config.height)
+        graphic = CustomGraphics(10, 10)
         createGameField()
     }
 
