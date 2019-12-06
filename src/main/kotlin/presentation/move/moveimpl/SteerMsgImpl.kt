@@ -8,6 +8,7 @@ import model.Field
 import model.Snake
 import presentation.ImmediateQueue
 import presentation.SelfInfo
+import presentation.master.MasterTools
 import presentation.move.Move
 import kotlin.random.Random
 
@@ -80,6 +81,17 @@ object SteerMsgImpl : Move {
         globalState.snakes.forEach{snake ->
             if(snake.player_id != selfSnake.player_id && selfSnake.points[0] == snake.points[0]) {
                 headFlag = true
+                val deputy = globalState.game_players.players.find{it.role == SnakesProto.NodeRole.DEPUTY}
+                if(snake.player_id == deputy?.id) {
+                    val newDeputy = globalState.game_players.players.find{it.role != SnakesProto.NodeRole.MASTER && it.role != SnakesProto.NodeRole.VIEWER}
+                    newDeputy?.role = SnakesProto.NodeRole.DEPUTY
+                    SendChangeRole.execute(listOf(newDeputy?.ip_address, newDeputy?.port, SnakesProto.NodeRole.MASTER, SnakesProto.NodeRole.DEPUTY, SelfInfo.selfId, newDeputy?.id))
+                }
+                if(snake.player_id == SelfInfo.selfId) {
+                    val deputy = globalState.game_players.players.find { it.role == SnakesProto.NodeRole.DEPUTY }
+                    SendChangeRole.execute(listOf(deputy?.ip_address, deputy?.port, SnakesProto.NodeRole.NORMAL, SnakesProto.NodeRole.MASTER, SelfInfo.selfId, deputy?.id))
+                }
+
                 globalState.game_players.players.find { it.id ==  snake.player_id}?.role = SnakesProto.NodeRole.VIEWER
                 snakeToDelete = snake
                 return@forEach
@@ -224,7 +236,18 @@ object SteerMsgImpl : Move {
             if(!checkForSnakes(field, snake)) {
                 System.out.println("REMOVE")
                 val player = globalState.game_players.players.find { it.id == snake.player_id }
-                if(snake.player_id == SelfInfo.selfId)
+                val deputy = globalState.game_players.players.find{it.role == SnakesProto.NodeRole.DEPUTY}
+                if(snake.player_id == deputy?.id) {
+                    val newDeputy = globalState.game_players.players.find{it.role != SnakesProto.NodeRole.MASTER && it.role != SnakesProto.NodeRole.VIEWER}
+                    newDeputy?.role = SnakesProto.NodeRole.DEPUTY
+                    SendChangeRole.execute(listOf(newDeputy?.ip_address, newDeputy?.port, SnakesProto.NodeRole.MASTER, SnakesProto.NodeRole.DEPUTY, SelfInfo.selfId, newDeputy?.id))
+                }
+
+                if(snake.player_id == SelfInfo.selfId) {
+                    val deputy = globalState.game_players.players.find { it.role == SnakesProto.NodeRole.DEPUTY }
+                    SendChangeRole.execute(listOf(deputy?.ip_address, deputy?.port, SnakesProto.NodeRole.NORMAL, SnakesProto.NodeRole.MASTER, SelfInfo.selfId, deputy?.id))
+                    MasterTools.endMasterTasks()
+                }
 
                 player?.role = SnakesProto.NodeRole.VIEWER
                 field.removeSnake(snake)

@@ -50,6 +50,7 @@ object StartNewGame : Move {
                                             properties.getValue(prop).toString().toFloat()
                                         else properties.getValue(prop).toString().toInt())
                         }
+                SelfInfo.myName = properties.getProperty("name")
             }
 
             cleanState()

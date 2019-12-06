@@ -1,9 +1,11 @@
 package presentation.master
 
+import creator.config
 import creator.globalState
 import kotlinx.coroutines.delay
 import model.Field
 import presentation.ImmediateQueue
+import presentation.SelfInfo
 import presentation.move.Move
 import presentation.move.moveimpl.SendAnnounsment
 import presentation.move.moveimpl.StateMsgImpl
@@ -12,6 +14,7 @@ import presentation.move.moveimpl.SteerMsgImpl
 import view.View
 import java.util.concurrent.ArrayBlockingQueue
 import kotlin.collections.ArrayList
+import kotlin.math.min
 
 object TimeoutQueue : Task {
     private val queue: ArrayBlockingQueue<Pair<Move, List<Any?>>> = ArrayBlockingQueue(50, true)
@@ -45,6 +48,17 @@ object TimeoutQueue : Task {
     }
 
     override suspend fun run() {
+
+
+        var stateDelayMs = 1000000
+        var currentTime : Long = 0
+        synchronized(ImmediateQueue::class) {
+            if(SelfInfo.selfId == 1)
+                print("")
+            stateDelayMs = config.stateDelayMs
+        }
+        val minTime = stateDelayMs
+
         var countMes : Long = 0
         var lastPushForward = System.currentTimeMillis()
         var lastAnnouncementMessage : Long = 0
@@ -59,6 +73,10 @@ object TimeoutQueue : Task {
                 SendAnnounsment.execute(listOf(countMes))
             }
             countMes++
+            synchronized(ImmediateQueue::class) {
+                if(SelfInfo.selfId == 1)
+                    print("")
+            }
 
             if(!queue.isEmpty()) {
                 val move = queue.poll()
@@ -70,14 +88,15 @@ object TimeoutQueue : Task {
             }
 
 
-            if(System.currentTimeMillis() - lastPushForward > 300) {
+            if(System.currentTimeMillis() - lastPushForward >= stateDelayMs) {
                 lastPushForward = System.currentTimeMillis()
                 pushForwardUnsended()
                 StateMsgImpl.execute(emptyList())
                 ThrowFood.execute(listOf(field))
             }
             view.update()
-            delay(10)
+            currentTime = System.currentTimeMillis()
+            delay(100)
         }
     }
 }

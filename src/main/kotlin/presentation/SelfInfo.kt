@@ -15,4 +15,5 @@ object SelfInfo {
     var masterPort : Int = -1
     var masterIp : String = ""
     var group = InetAddress.getByName("239.192.0.4")
+    var myName = ""
 }

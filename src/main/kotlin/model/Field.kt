@@ -40,6 +40,22 @@ class Field {
         else {free.remove(Coord(i, j))}
     }
 
+    private fun linePart(foodFlag: Boolean, freeFlag: Boolean, x : Int, y : Int, value: Int, snake: Snake) {
+        if(!foodFlag) {
+            field[y][x][0] += value
+            if (value == 1) field[y][x].add(snake.player_id)
+            if (value == -1) field[y][x].subList(1, field[y][x].size).remove(snake.player_id)
+
+            if (freeFlag) {
+                freeSnakePoints(x, y, value)
+            }
+        }
+        else {
+            if(Random.nextInt(99) < config.deadFoodProb)
+                globalState.foods.add(Coord(x, y))
+        }
+    }
+
     fun changeSnakePath(value: Int, snake: Snake, freeFlag : Boolean, foodFlag : Boolean) {
         if(config.width == 0  || config.height == 0) return
 
@@ -60,71 +76,19 @@ class Field {
                 y = prevy + point.y
                 if(prevx == x) {
                     if(y < 0) {
-                        for(i in 0 until (prevy)) {
-                            if(!foodFlag) {
-                                field[i][x][0] += value
-                                if (value == 1) field[i][x].add(snake.player_id)
-                                if (value == -1) field[i][x].remove(snake.player_id)
-
-                                if (freeFlag) {
-                                    freeSnakePoints(x, i, value)
-                                }
-                            }
-                            else {
-                                if(Random.nextInt(99) < config.deadFoodProb)
-                                    globalState.foods.add(Coord(x, i))
-                            }
-                        }
+                        for(i in 0 until (prevy))
+                            linePart(foodFlag, freeFlag, x, i, value, snake)
                         y = (y + config.height)% config.height
-                        for(i in y until (config.height)) {
-                            if(!foodFlag) {
-                                field[i][x][0] += value
-                                if (value == 1) field[i][x].add(snake.player_id)
-                                if (value == -1) field[i][x].remove(snake.player_id)
-
-                                if (freeFlag) {
-                                    freeSnakePoints(x, i, value)
-                                }
-                            }
-                            else {
-                                if(Random.nextInt(99) < config.deadFoodProb)
-                                    globalState.foods.add(Coord(x, i))
-                            }
-                        }
+                        for(i in y until (config.height))
+                            linePart(foodFlag, freeFlag, x, i, value, snake)
                     }
                     else {
                         if(y >= config.height) {
-                            for(i in prevy + 1 until (config.height)) {
-                                if(!foodFlag) {
-                                    field[i][x][0] += value
-                                    if (value == 1) field[i][x].add(snake.player_id)
-                                    if (value == -1) field[i][x].remove(snake.player_id)
-
-                                    if (freeFlag) {
-                                        freeSnakePoints(x, i, value)
-                                    }
-                                }
-                                else {
-                                    if(Random.nextInt(99) < config.deadFoodProb)
-                                        globalState.foods.add(Coord(x, i))
-                                }
-                            }
+                            for(i in prevy + 1 until (config.height))
+                                linePart(foodFlag, freeFlag, x, i, value, snake)
                             y = (y + config.height)% config.height
-                            for(i in 0 until (y+1)) {
-                                if(!foodFlag) {
-                                    field[i][x][0] += value
-                                    if (value == 1) field[i][x].add(snake.player_id)
-                                    if (value == -1) field[i][x].remove(snake.player_id)
-
-                                    if (freeFlag) {
-                                        freeSnakePoints(x, i, value)
-                                    }
-                                }
-                                else {
-                                    if(Random.nextInt(99) < config.deadFoodProb)
-                                        globalState.foods.add(Coord(x, i))
-                                }
-                            }
+                            for(i in 0 until (y+1))
+                                linePart(foodFlag, freeFlag, x, i, value, snake)
                         }
                         else {
                             leftx = x
@@ -133,19 +97,7 @@ class Field {
                             righty = if (y < prevy) (prevy - 1) else y
                             for (i in leftx until (rightx + 1)) {
                                 for (j in lefty until (righty + 1)) {
-                                    if(!foodFlag) {
-                                        field[j][i][0] += value
-                                        if (value == 1) field[j][i].add(snake.player_id)
-                                        if (value == -1) field[j][i].remove(snake.player_id)
-
-                                        if (freeFlag) {
-                                            freeSnakePoints(i, j, value)
-                                        }
-                                    }
-                                    else {
-                                        if(Random.nextInt(99) < config.deadFoodProb)
-                                            globalState.foods.add(Coord(x, i))
-                                    }
+                                    linePart(foodFlag, freeFlag, i, j, value, snake)
                                 }
                             }
                         }
@@ -153,71 +105,19 @@ class Field {
                 }
                 if(prevy == y) {
                     if(x < 0) {
-                        for(i in 0 until (prevx)) {
-                            if(!foodFlag) {
-                                field[y][i][0] += value
-                                if (value == 1) field[y][i].add(snake.player_id)
-                                if (value == -1) field[y][i].remove(snake.player_id)
-
-                                if (freeFlag) {
-                                    freeSnakePoints(i, y, value)
-                                }
-                            }
-                            else {
-                                if(Random.nextInt(99) < config.deadFoodProb)
-                                    globalState.foods.add(Coord(i, y))
-                            }
-                        }
+                        for(i in 0 until (prevx))
+                            linePart(foodFlag, freeFlag, i, y, value, snake)
                         x = (x + config.width)% config.width
-                        for(i in x until (config.width)) {
-                            if(!foodFlag) {
-                                field[y][i][0] += value
-                                if (value == 1) field[y][i].add(snake.player_id)
-                                if (value == -1) field[y][i].remove(snake.player_id)
-
-                                if (freeFlag) {
-                                    freeSnakePoints(i, y, value)
-                                }
-                            }
-                            else {
-                                if(Random.nextInt(99) < config.deadFoodProb)
-                                    globalState.foods.add(Coord(i, y))
-                            }
-                        }
+                        for(i in x until (config.width))
+                            linePart(foodFlag, freeFlag, i, y, value, snake)
                     }
                     else {
                         if(x >= config.width) {
-                            for(i in prevx+1 until (config.width)) {
-                                if(!foodFlag) {
-                                    field[y][i][0] += value
-                                    if (value == 1) field[y][i].add(snake.player_id)
-                                    if (value == -1) field[y][i].remove(snake.player_id)
-
-                                    if (freeFlag) {
-                                        freeSnakePoints(i, y, value)
-                                    }
-                                }
-                                else {
-                                    if(Random.nextInt(99) < config.deadFoodProb)
-                                        globalState.foods.add(Coord(i, y))
-                                }
-                            }
+                            for(i in prevx+1 until (config.width))
+                                linePart(foodFlag, freeFlag, i, y, value, snake)
                             x = (x + config.width)% config.width
-                            for(i in 0 until (x+1)) {
-                                if(!foodFlag) {
-                                    field[y][i][0] += value
-                                    if (value == 1) field[y][i].add(snake.player_id)
-                                    if (value == -1) field[y][i].remove(snake.player_id)
-
-                                    if (freeFlag) {
-                                        freeSnakePoints(i, y, value)
-                                    }
-                                }
-                                else {
-                                    if(Random.nextInt(99) < config.deadFoodProb)
-                                        globalState.foods.add(Coord(i, y))
-                                }
-                            }
+                            for(i in 0 until (x+1))
+                                linePart(foodFlag, freeFlag, i, y, value, snake)
                         }
                         else {
                             leftx = if (x < prevx) x else (prevx + 1)
@@ -227,19 +127,7 @@ class Field {
 
                             for (i in leftx until (rightx + 1)) {
                                 for (j in lefty until (righty + 1)) {
-                                    if(!foodFlag) {
-                                        field[j][i][0] += value
-                                        if (value == 1) field[j][i].add(snake.player_id)
-                                        if (value == -1) field[j][i].remove(snake.player_id)
-
-                                        if (freeFlag) {
-                                            freeSnakePoints(i, j, value)
-                                        }
-                                    }
-                                    else {
-                                        if(Random.nextInt(99) < config.deadFoodProb)
-                                            globalState.foods.add(Coord(i, j))
-                                    }
+                                    linePart(foodFlag, freeFlag, i, j, value, snake)
                                 }
                             }
                         }
@@ -254,7 +142,7 @@ class Field {
 
                 field[y][x][0] += value
                 if(value == 1) field[y][x].add(snake.player_id)
-                if(value == -1) field[y][x].remove(snake.player_id)
+                if(value == -1) field[y][x].subList(1, field[y][x].size).remove(snake.player_id)
 
             }
         }

@@ -8,6 +8,7 @@ import presentation.SelfInfo
 import presentation.master.MasterTools
 import presentation.move.moveimpl.SendChangeRole
 import presentation.notmaster.MessagesType
+import presentation.notmaster.Resender
 import view.View
 import java.net.DatagramPacket
 import java.util.concurrent.atomic.AtomicLong
@@ -17,6 +18,7 @@ object ChangeRoleReaction : MessagesType {
         synchronized(ImmediateQueue::class) {
             val currentMaster = globalState.game_players.players.find{it.role == SnakesProto.NodeRole.MASTER}
             currentMaster?.role = SnakesProto.NodeRole.VIEWER
+            globalState.snakes.remove(globalState.snakes.find { it.player_id == currentMaster?.id })
             globalState.game_players.players.find { it.id == protoElement.senderId }?.role = SnakesProto.NodeRole.MASTER
             SelfInfo.masterInfo = protoElement.senderId
             SelfInfo.masterIp = packet.address.toString().replace("/", "")
@@ -24,20 +26,43 @@ object ChangeRoleReaction : MessagesType {
 
             currentMaster?.ip_address = packet.address.toString().replace("/", "")
             currentMaster?.port = packet.port
+
         }
     }
 
     private fun claimDead(protoElement: SnakesProto.GameMessage) {
         synchronized(ImmediateQueue::class) {
+            if(globalState.game_players.players.find { it.id == protoElement.senderId }?.role == SnakesProto.NodeRole.VIEWER) return
             globalState.snakes.remove(globalState.snakes.find { it.player_id == protoElement.receiverId })
             globalState.game_players.players.find { it.id == protoElement.receiverId}?.role = SnakesProto.NodeRole.VIEWER
+
         }
     }
 
     private fun deputyIsMaster(protoElement: SnakesProto.GameMessage) {
         synchronized(ImmediateQueue::class) {
-            globalState.game_players.players.find{it.role == SnakesProto.NodeRole.MASTER}?.role = SnakesProto.NodeRole.VIEWER
-            globalState.game_players.players.find{it.id == SelfInfo.selfId}?.role = SnakesProto.NodeRole.MASTER
+            //remove snake
+
+            val currentMaster = globalState.game_players.players.find{it.role == SnakesProto.NodeRole.MASTER}
+            currentMaster?.role = SnakesProto.NodeRole.VIEWER
+            globalState.snakes.remove(globalState.snakes.find { it.player_id == currentMaster?.id })
+
+            val master = globalState.game_players.players.find{it.id == SelfInfo.selfId}
+            master?.role = SnakesProto.NodeRole.MASTER
+
+            SelfInfo.masterInfo = SelfInfo.selfId
+            SelfInfo.masterIp = master?.ip_address!!
+            SelfInfo.masterPort = master?.port!!
+
+            val newDeputy = globalState.game_players.players.find{it.role != SnakesProto.NodeRole.MASTER && it.role != SnakesProto.NodeRole.VIEWER}
+            newDeputy?.role = SnakesProto.NodeRole.DEPUTY
+
+            globalState.game_players.players.forEach{player ->
+                if(player.role != SnakesProto.NodeRole.MASTER)
+                    SendChangeRole.execute(listOf(player.ip_address, player.port, SnakesProto.NodeRole.MASTER, SnakesProto.NodeRole.NORMAL, SelfInfo.selfId, player.id))
+            }
+            SendChangeRole.execute(listOf(newDeputy?.ip_address, newDeputy?.port, SnakesProto.NodeRole.MASTER, SnakesProto.NodeRole.DEPUTY, SelfInfo.selfId, newDeputy?.id))
+            Resender.clearResending()
         }
         MasterTools.startMasterTasks()
     }
@@ -80,8 +105,8 @@ object ChangeRoleReaction : MessagesType {
                 SelfInfo.masterIp = packet.address.toString().replace("/", "")
                 SelfInfo.masterPort = packet.port
 
-                MasterTools.startMasterTasks()
             }
+            MasterTools.startMasterTasks()
 
         }
     }

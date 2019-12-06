@@ -10,3 +10,4 @@ var config : GameConfig = GameConfig(0, 0, 1, (1.0).toFloat(), 10, 100, 100.0.to
 var globalState : GameState = GameState(1, ArrayList(), ArrayList(), GamePlayers(ArrayList()), config)
 val mesSeq = AtomicLong(0)
 val currentGames : CurrentGames = CurrentGames(HashMap())
+

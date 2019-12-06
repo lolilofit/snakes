@@ -28,10 +28,6 @@ object StateMsgReaction : MessagesType {
         }
 
         if(flag) {
-            val newState = ProtoAdapter.getGameState(protoElement.state.state)
-            synchronized(ImmediateQueue::class) {
-                globalState = newState
-            }
             val masterInfo: Optional<GamePlayer>
             synchronized(ImmediateQueue::class) {
                 masterInfo = globalState.game_players.players.stream().filter { it.role == SnakesProto.NodeRole.MASTER }.findFirst()
@@ -39,6 +35,11 @@ object StateMsgReaction : MessagesType {
             if (!masterInfo.isPresent) {
                 System.out.println("NO MASTER")
                 return
+            }
+            if(masterInfo.get().id == SelfInfo.selfId) return
+            val newState = ProtoAdapter.getGameState(protoElement.state.state)
+            synchronized(ImmediateQueue::class) {
+                globalState = newState
             }
             masterInfo.get().ip_address = packet.address.toString().replace("/", "")
             masterInfo.get().port = packet.port
